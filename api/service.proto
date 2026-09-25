@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package ecommerce.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "ecommerce/v1;ecommercev1";
+option java_multiple_files = true;
+option java_package = "com.khntu.ecommerce.v1";
+
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_NEW = 1;
+  ORDER_STATUS_PENDING_PAYMENT = 2;
+  ORDER_STATUS_PAID = 3;
+  ORDER_STATUS_CANCELLED = 4;
+}
+
+message KhNTUAuditMetadata {
+  string trace_token = 1 [json_name = "trace_token"];
+  string client_ip = 2;
+}
+
+message OrderItem {
+  int64 product_id = 1;
+  int32 quantity = 2;
+  double price = 3;
+}
+
+message CreateOrderRPCRequest {
+  int64 user_id = 1;
+  repeated OrderItem items = 2;
+  KhNTUAuditMetadata audit_metadata = 3;
+}
+
+message OrderRPCResponse {
+  int64 order_id = 1;
+  int64 user_id = 2;
+  OrderStatus status = 3;
+  double total_amount = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message StreamOrderStatusRequest {
+  int64 order_id = 1;
+}
+
+message OrderStatusUpdate {
+  int64 order_id = 1;
+  OrderStatus status = 2;
+  string message = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message CancelOperationRequest {
+  int64 order_id = 1;
+  string reason = 2;
+}
+
+message CancelOperationResponse {
+  bool success = 1;
+  string status_message = 2;
+}
+
+service InternalOrderService {
+  // 1. Unary RPC
+  rpc CreateOrder (CreateOrderRPCRequest) returns (OrderRPCResponse);
+  
+  // 2. Unary RPC
+  rpc CancelOperation (CancelOperationRequest) returns (CancelOperationResponse);
+  
+  // 3. Server Streaming RPC
+  rpc StreamOrderStatus (StreamOrderStatusRequest) returns (stream OrderStatusUpdate);
+}
