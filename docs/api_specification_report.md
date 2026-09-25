@@ -48,4 +48,26 @@
   ],
   "next_cursor": "cursor_xyz123"
 }
+---
+
+### 3. Специфікація gRPC API (Protocol Buffers v3)
+
+* **Посилання на файл специфікації:** [`api/service.proto`](../api/service.proto)
+
+#### Опис сервісу, RPC-методів та структур повідомлень:
+У сервісі `InternalOrderService` описано міжсервісну взаємодію із застосуванням строгої типізації Proto3, унікальних числових тегів полів та перелічень enum:
+* `CreateOrder` (Unary RPC) — приймає `CreateOrderRequest`, повертає `OrderResponse`.
+* `CancelOperation` (Unary RPC) — приймає `CancelOperationRequest`, повертає `CancelOperationResponse`.
+* `StreamOrderStatus` (Server Streaming RPC) — приймає `OrderStatusRequest`, повертає потік `StreamResult`.
+
+**Ключові структури передаваних повідомлень:**
+* `Order` — основна доменна сутність (поля: `id` (int64), `user_id` (int64), `items` (repeated OrderItem), `total_amount` (double), `status` (OrderStatus), `metadata` (KhNTUAuditMetadata)).
+* `OrderItem` — позиція замовлення (поля: `product_id` (int64), `quantity` (int32), `unit_price` (double)).
+* `OrderStatus` — enum станів (`ORDER_STATUS_UNSPECIFIED = 0`, `NEW = 1`, `PROCESSING = 2`, `COMPLETED = 3`, `CANCELLED = 4`).
+* `KhNTUAuditMetadata` — метадані аудиту системних запитів (`trace_id`, `created_at`).
+
+#### Фрагмент успішної генерації стабів:
+Виконано команду генерації TypeScript/JavaScript типізованих стабів:
+```cmd
+npx proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=api/generated api/service.proto
 
