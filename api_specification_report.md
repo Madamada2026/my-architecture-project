@@ -43,7 +43,7 @@
 У сервісі `InternalOrderService` описано міжсервісну взаємодію із застосуванням строгої типізації Proto3, унікальних числових тегів полів та перелічень enum:
 * `CreateOrder` (Unary RPC) — приймає `CreateOrderRequest`, повертає `OrderResponse`.
 * `CancelOperation` (Unary RPC) — приймає `CancelOperationRequest`, повертає `CancelOperationResponse`.
-* `StreamOrderStatus` (Server Streaming RPC) — приймає `OrderStatusRequest`, повертає потік `StreamResult`.
+* `StreamOrderStatus` (Server Streaming RPC) — приймає `StreamOrderStatusRequest`, повертає потік `OrderStatusUpdate`.
 
 **Ключові структури передаваних повідомлень:**
 * `Order` — основна доменна сутність (поля: `id` (int64), `user_id` (int64), `items` (repeated OrderItem), `total_amount` (double), `status` (OrderStatus), `metadata` (KhNTUAuditMetadata)).
