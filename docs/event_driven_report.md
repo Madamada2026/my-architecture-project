@@ -9,8 +9,8 @@
 
 | Подія | Видавець | Споживачі | Поля |
 | :--- | :--- | :--- | :--- |
-| OrderCreatedEvent | CreateOrderUseCase | InventoryConsumer, NotificationConsumer | EventId (Guid), OccurredAt (DateTime), OrderId (long), UserId (long), TotalAmount (decimal), SchemaTag |
-| PaymentProcessedEvent | (Майбутній PaymentModule) | (Майбутній OrderModule) | EventId (Guid), OccurredAt (DateTime), OrderId (long), IsSuccess (bool), SchemaTag |
+| OrderCreatedEvent | CreateOrderUseCase | InventoryConsumer, NotificationConsumer | EventId (Guid), OccurredAt (DateTime), OrderId (long), UserId (long), TotalAmount (decimal) |
+| PaymentProcessedEvent | (Майбутній PaymentModule) | (Майбутній OrderModule) | EventId (Guid), OccurredAt (DateTime), OrderId (long), IsSuccess (bool) |
 
 *Примітка:* Класи подій розміщено у шарі Domain (src/Domain/Events), оскільки вони є незмінними фактами предметної області. Згідно з правилом залежностей Clean Architecture, вони не можуть знаходитися в Infrastructure чи Application.
 
@@ -26,7 +26,7 @@
 Обидва споживачі працюють незалежно. Падіння одного споживача ловиться в блоці try-catch всередині шини і не зупиняє роботу іншого, а також не впливає на повернення відповіді клієнту.
 
 ### 4. Ідемпотентність
-Оброблені ідентифікатори EventId зберігаються у потокобезпечній колекції ConcurrentDictionary у класі IdempotencyService (сховище khntu_processed_events_v5). Щоб різні споживачі не конфліктували, ключ формується як НазваСпоживача_EventId. Перед виконанням бізнес-логіки споживач викликає TryMarkAsProcessed(consumerName, eventId).
+Оброблені ідентифікатори EventId зберігаються у потокобезпечній колекції ConcurrentDictionary у класі IdempotencyService (сховище в пам'яті). Щоб різні споживачі не конфліктували, ключ формується як НазваСпоживача_EventId. Перед виконанням бізнес-логіки споживач викликає TryMarkAsProcessed(consumerName, eventId).
 
 **Фрагмент логу з пропуском дубліката (при повторній доставці тієї самої події):**
 ```text
@@ -39,4 +39,4 @@ info: Infrastructure.Consumers.InventoryConsumer[0]
 info: Infrastructure.Consumers.NotificationConsumer[0]
       NotificationConsumer: Email sent successfully for Order 0
 warn: Infrastructure.Consumers.NotificationConsumer[0]
-      [KhNTU-Idempotency-42] duplicate skipped. EventId: 18569613-c1a2-4ccf-bdd6-75427bf07a62
+      Duplicate skipped. EventId: 18569613-c1a2-4ccf-bdd6-75427bf07a62

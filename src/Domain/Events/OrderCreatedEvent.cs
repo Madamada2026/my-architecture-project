@@ -5,7 +5,4 @@ public record OrderCreatedEvent(
     DateTime OccurredAt,
     long OrderId,
     long UserId,
-    decimal TotalAmount)
-{
-    public string SchemaTag { get; init; } = "KhNTU-EDA-5.42";
-}
+    decimal TotalAmount);

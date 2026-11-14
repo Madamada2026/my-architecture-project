@@ -8,7 +8,6 @@ public class InMemoryEventBus : IEventPublisher
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<InMemoryEventBus> _logger;
-    private const string ChannelPrefix = "khntu.events.v5";
 
     public InMemoryEventBus(IServiceScopeFactory scopeFactory, ILogger<InMemoryEventBus> logger)
     {
@@ -20,7 +19,7 @@ public class InMemoryEventBus : IEventPublisher
     {
         var eventName = typeof(TEvent).Name;
         var eventId = GetEventId(@event);
-        _logger.LogInformation($"[{ChannelPrefix}.{eventName}] Published event with ID: {eventId}");
+        _logger.LogInformation($"[Events.{eventName}] Published event with ID: {eventId}");
 
         // Запускаємо асинхронну обробку, щоб не блокувати основний потік видавця
         _ = Task.Run(async () =>
