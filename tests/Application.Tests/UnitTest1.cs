@@ -1,10 +1,12 @@
-using Xunit;
+﻿using Xunit;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Domain.Entities;
 using Application.UseCases;
+using Application.Ports;
+using Domain.Events;
 
 public class CreateOrderUseCaseTests
 {
@@ -13,15 +15,17 @@ public class CreateOrderUseCaseTests
     {
         var mockRepo = new Mock<IOrderRepository>();
         var mockTime = new Mock<IKhNTUTimeProvider>();
+        var mockPublisher = new Mock<IEventPublisher>();
         mockTime.Setup(t => t.GetCurrentTime()).Returns(DateTime.UtcNow);
         
-        var useCase = new CreateOrderUseCase(mockRepo.Object, mockTime.Object);
+        var useCase = new CreateOrderUseCase(mockRepo.Object, mockTime.Object, mockPublisher.Object);
         var items = new List<OrderItem> { new OrderItem { ProductId = 1, Quantity = 2, Price = 100 } };
 
         var result = await useCase.ExecuteAsync(123, items);
 
         Assert.NotNull(result);
         mockRepo.Verify(r => r.AddAsync(It.IsAny<long>()), Times.Once);
+        mockPublisher.Verify(p => p.PublishAsync(It.IsAny<OrderCreatedEvent>()), Times.Once);
     }
 
     [Fact]
@@ -29,7 +33,8 @@ public class CreateOrderUseCaseTests
     {
         var mockRepo = new Mock<IOrderRepository>();
         var mockTime = new Mock<IKhNTUTimeProvider>();
-        var useCase = new CreateOrderUseCase(mockRepo.Object, mockTime.Object);
+        var mockPublisher = new Mock<IEventPublisher>();
+        var useCase = new CreateOrderUseCase(mockRepo.Object, mockTime.Object, mockPublisher.Object);
 
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
@@ -44,9 +49,10 @@ public class CreateOrderUseCaseTests
     {
         var mockRepo = new Mock<IOrderRepository>();
         var mockTime = new Mock<IKhNTUTimeProvider>();
+        var mockPublisher = new Mock<IEventPublisher>();
         mockRepo.Setup(r => r.AddAsync(It.IsAny<long>())).ThrowsAsync(new InvalidOperationException("DB error"));
         
-        var useCase = new CreateOrderUseCase(mockRepo.Object, mockTime.Object);
+        var useCase = new CreateOrderUseCase(mockRepo.Object, mockTime.Object, mockPublisher.Object);
         var items = new List<OrderItem> { new OrderItem { ProductId = 1, Quantity = 1, Price = 50 } };
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
