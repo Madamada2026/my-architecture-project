@@ -1,25 +1,34 @@
-deploymentDiagram
-    node "Client Device" <<device>> {
-        artifact "Web Browser (SPA)" <<artifact>>
-    }
+```mermaid
+graph TD
+    subgraph Client ["Client Device «device»"]
+        subgraph Browser ["Web Browser «executionEnvironment»"]
+            SPA["SPA Bundle (JS/HTML/CSS) «artifact»"]
+        end
+    end
 
-    node "Docker Host (Cloud VM / Local PC)" <<device>> {
-        node "Docker Container (.NET Runtime)" <<executionEnvironment>> {
-            artifact "WebAPI.dll (Modular Monolith)" <<artifact>>
-            artifact "In-Memory Event Bus" <<artifact>>
-            artifact "Consumers (Inventory, Notification)" <<artifact>>
-        }
-        node "Docker Container (PostgreSQL)" <<executionEnvironment>> {
-            artifact "PostgreSQL Database" <<artifact>>
-        }
-    }
+    subgraph DockerHost ["Docker Host (Cloud VM / Local PC) «device»"]
+        subgraph AppContainer ["Docker Container (.NET Runtime) «executionEnvironment»"]
+            WebAPI["WebAPI.dll (Modular Monolith) «artifact»"]
+            Bus["In-Memory Event Bus «component»"]
+            Consumers["Consumers (Inventory, Notification) «component»"]
 
-    node "External Systems" <<device>> {
-        artifact "Payment Gateway API" <<artifact>>
-        artifact "Email Service API" <<artifact>>
-    }
+            WebAPI -->|In-process| Bus
+            Bus -->|Events| Consumers
+        end
 
-    "Web Browser (SPA)" --> "WebAPI.dll (Modular Monolith)" : HTTPS / 443
-    "WebAPI.dll (Modular Monolith)" --> "PostgreSQL Database" : TCP / 5432
-    "WebAPI.dll (Modular Monolith)" --> "Payment Gateway API" : HTTPS / REST
-    "WebAPI.dll (Modular Monolith)" --> "Email Service API" : HTTPS / SMTP
+        subgraph DBContainer ["Docker Container (PostgreSQL) «executionEnvironment»"]
+            Database["PostgreSQL Data / Schema «artifact»"]
+        end
+    end
+
+    subgraph External ["External Systems «node»"]
+        Payment["Payment Gateway API «system»"]
+        Email["Email Service API «system»"]
+    end
+
+    SPA -->|HTTPS / 443| WebAPI
+    WebAPI -->|TCP / 5432| Database
+    Consumers -->|TCP / 5432| Database
+    WebAPI -->|HTTPS / REST| Payment
+    Consumers -->|HTTPS / SMTP| Email
+```
